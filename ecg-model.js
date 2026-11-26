@@ -50,14 +50,18 @@
     if(red)return red;
     const W=root.ECG_MODEL_WEIGHTS;
     if(!W)return null;
-    const bin=atob(W.b64), bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    const datos=new Float32Array(bytes.buffer);
-    let p=0;
-    const tomar=n=>{const v=datos.subarray(p,p+n);p+=n;return v};
-    const capas=W.capas.map(c=>({cin:c.cin,cout:c.cout,k:c.k,pool:c.pool,w:tomar(c.cout*c.cin*c.k),b:tomar(c.cout)}));
-    const fc={entradas:W.fc.entradas,salidas:W.fc.salidas,w:tomar(W.fc.salidas*W.fc.entradas),b:tomar(W.fc.salidas)};
-    red={clases:W.clases,capas,fc,info:W.info||{}};
+    // El archivo puede traer un modelo o varios; con varios se promedian sus probabilidades.
+    const desempaquetar=M=>{
+      const bin=atob(M.b64), bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      const datos=new Float32Array(bytes.buffer);
+      let p=0;
+      const tomar=n=>{const v=datos.subarray(p,p+n);p+=n;return v};
+      const capas=M.capas.map(c=>({cin:c.cin,cout:c.cout,k:c.k,pool:c.pool,w:tomar(c.cout*c.cin*c.k),b:tomar(c.cout)}));
+      const fc={entradas:M.fc.entradas,salidas:M.fc.salidas,w:tomar(M.fc.salidas*M.fc.entradas),b:tomar(M.fc.salidas)};
+      return {capas,fc};
+    };
+    red={clases:W.clases,modelos:(W.modelos||[W]).map(desempaquetar),info:W.info||{}};
     return red;
   }
 
@@ -110,7 +114,11 @@
 
   // ------------------------------------------------------------ red neuronal
   function inferir(v){
-    const m=cargar();
+    const modelos=cargar().modelos, suma=new Array(modelos[0].fc.salidas).fill(0);
+    for(const m of modelos)inferirUno(m,v).forEach((p,i)=>{suma[i]+=p/modelos.length});
+    return suma;
+  }
+  function inferirUno(m,v){
     let x=v, L=v.length;
     for(const c of m.capas){
       const pad=c.k>>1, out=new Float32Array(c.cout*L);
@@ -246,6 +254,10 @@
     for(let i=1;i<probs.length;i++)if(probs[i]>probs[k])k=i;
     const clase=m.clases[k], confianza=probs[k];
     const r={clase,id:IDS[clase]||null,confianza,probs:Object.fromEntries(m.clases.map((c,i)=>[c,probs[i]])),nombre:NOMBRES[clase]||clase,variante:null,lpm:null,concluyente:confianza>=config.confianzaMinima,notas:[]};
+    // Segunda opcion de la red, para mostrarla cuando la primera no es muy segura
+    let k2=-1;
+    for(let i=0;i<probs.length;i++)if(i!==k&&(k2<0||probs[i]>probs[k2]))k2=i;
+    r.segunda=k2>=0?{clase:m.clases[k2],nombre:NOMBRES[m.clases[k2]]||m.clases[k2],prob:probs[k2]}:null;
     const fijar=(nombre,id)=>{r.nombre=nombre;r.id=id};
     // Con marcapasos la espiga es tan alta como el QRS: un refractario largo evita contarla como latido.
     const {picos,amplitud}=picosR(v,clase.startsWith('marc_')?0.35:0.18), rr=intervalosRR(picos);
