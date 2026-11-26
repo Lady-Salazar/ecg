@@ -1,0 +1,12 @@
+# Generated local server output
+dist/
+node_modules/
+*.log
+
+# Environment values and local captures; ECG recordings stay on this device
+.env
+.env.*
+captures/
+recordings/
+private-data/
+*.csv

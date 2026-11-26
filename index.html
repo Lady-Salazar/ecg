@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f7fa">
+  <meta name="description" content="Monitor educativo de ECG con conexión BLE al ESP32 y modo de demostración.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="enhancements.css">
+  <link rel="stylesheet" href="learning.css">
+  <link rel="stylesheet" href="ecgenius-replica.css">
+  <title>CardioLab · Monitor ECG</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#monitor" aria-label="CardioLab, monitor">
+        <span class="brand-mark" aria-hidden="true"><span></span><i></i></span><span>Cardio<span>Lab</span></span>
+      </a>
+      <button id="installBtn" class="icon-button install-button" hidden aria-label="Instalar aplicación" title="Instalar aplicación">↓</button>
+      <div class="connection-pill" id="connectionPill"><span class="status-dot"></span><span id="connectionText">Sin conectar</span></div>
+      <button id="menuBtn" class="icon-button menu-button" type="button" aria-label="Abrir navegación" aria-expanded="false"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    </header>
+
+    <main>
+      <section id="view-monitor" class="view view-monitor active" aria-labelledby="monitorTitle">
+        <div class="page-heading">
+          <div><p class="eyebrow">PANEL DE MONITORIZACIÓN</p><h1 id="monitorTitle">Tu señal, en vivo</h1><p class="muted">Conecta el ESP32 o explora el modo de demostración.</p></div>
+          <img class="monitor-doctor" src="assets/assets/characters/doctor-01/presenting.svg" alt="Doctora guía ECG" loading="lazy">
+          <div class="connection-actions"><button class="button button-primary connect-action" id="connectBtn"><span aria-hidden="true">↻</span> Conexión rápida</button><button class="button button-outline connect-action" id="manualConnectBtn"><span aria-hidden="true">⌁</span> Elegir dispositivo</button></div>
+        </div>
+        <div id="notice" class="notice" role="status" aria-live="polite"><span class="notice-icon">i</span><span id="noticeText">La interpretación es experimental y no sustituye una evaluación profesional.</span><button id="noticeClose" aria-label="Cerrar aviso">×</button></div>
+
+        <div class="monitor-grid">
+          <article class="card ecg-card">
+            <div class="card-heading">
+              <div><div class="live-label"><span class="live-dot" id="liveDot"></span><span id="sourceLabel">DEMO · SIMULACIÓN</span></div><h2>Electrocardiograma</h2></div>
+              <div class="signal-badge" id="signalBadge"><span class="status-dot"></span><span id="signalText">Esperando señal</span></div>
+            </div>
+            <div class="chart-wrap"><canvas id="ecgCanvas" aria-label="Gráfica de señal ECG en tiempo real"></canvas><div class="chart-overlay" id="chartOverlay"><span class="pulse-icon">⌁</span><strong>La señal aparecerá aquí</strong><small>Conecta tu ESP32 o inicia la demostración</small></div></div>
+            <div class="chart-footer"><span><i class="legend-line"></i> ECG · una derivación</span><span id="sampleInfo">— muestras/s</span></div>
+            <div class="control-row"><button class="button button-soft" id="demoBtn">▶ Iniciar demo</button><button class="button button-outline" id="recordBtn" disabled>● Grabar captura</button><button class="button button-ghost" id="stopBtn" disabled>■ Detener</button></div>
+          </article>
+
+          <aside class="vitals-column">
+            <article class="card heart-card"><div class="metric-label"><span>♥</span> FRECUENCIA CARDÍACA</div><div class="heart-value"><strong id="heartRate">—</strong><span>lpm</span></div><div class="metric-caption" id="heartCaption">Esperando datos suficientes</div><div class="mini-wave" aria-hidden="true">⌁⌁⌁⌁⌁⌁⌁⌁⌁⌁</div></article>
+            <article class="card assessment-card"><div class="assessment-title"><span class="assessment-icon"><img src="assets/assets/characters/mascot-cat/presenting.svg" alt="" loading="lazy"></span><div><small>LECTURA ORIENTATIVA</small><strong id="assessmentTitle">Sin interpretación</strong></div></div><p id="assessmentText">Inicia una lectura para calcular medidas básicas. Este prototipo usa reglas educativas; no tiene una IA entrenada.</p><button type="button" id="openClassifierBtn" class="assessment-tag">Abrir comparador educativo</button></article>
+            <article class="card small-metric"><div class="small-metric-icon">∿</div><div><small>CALIDAD DE SEÑAL</small><strong id="qualityValue">Sin datos</strong></div><span class="quality-dot" id="qualityDot"></span></article>
+          </aside>
+        </div>
+        <div class="disclaimer"><span>ⓘ</span><p><strong>Uso educativo.</strong> Esta app no diagnostica ni descarta enfermedades. ECG de una derivación y medidas experimentales requieren revisión por personal de salud.</p></div>
+      </section>
+
+      <section id="view-predict" class="view" aria-labelledby="predictTitle">
+        <div class="page-heading"><div><p class="eyebrow">CLASIFICADOR EDUCATIVO · 27 RITMOS</p><h1 id="predictTitle">Explorar una coincidencia</h1><p class="muted">Ingresa hallazgos que hayas verificado en la tira. El comparador usa reglas del dataset, no es una IA entrenada ni interpreta automáticamente el ECG.</p></div><span class="count-chip">Experimental · no diagnóstico</span></div>
+        <div class="predict-layout"><section class="card classifier-card"><div class="classifier-heading"><img id="classifierDoctor" src="assets/assets/characters/doctor-01/default.svg" alt="Doctora guía" loading="lazy"><div><p class="eyebrow">COMPARADOR DE PATRONES</p><h2>Características observadas</h2><p>Frecuencia estimada y datos que selecciones manualmente.</p></div></div>
+          <div class="classifier-data-note">No analiza automáticamente ondas P, PR, QRS ni conducción desde la señal. Si faltan hallazgos, el resultado debe quedar como insuficiente o ambiguo.</div>
+          <div id="classifierFields" class="classifier-fields"></div>
+          <div class="classifier-actions"><button id="runClassifierBtn" class="button button-primary">Comparar con los 27 patrones</button><button id="clearClassifierBtn" class="button button-ghost">Limpiar</button><span id="classifierHint" class="muted">Puntajes de coincidencia no son probabilidades.</span></div>
+          <div id="classifierResults" class="classifier-results" aria-live="polite"><div class="classifier-empty">Completa hallazgos observables y compara los patrones disponibles.</div></div>
+        </section><aside class="card predict-guide"><img src="assets/assets/characters/doctor-03/presenting.svg" alt="Guía de lectura ECG" loading="lazy"><h2>Describe antes de comparar</h2><ol><li>Evalúa la regularidad de los intervalos R–R.</li><li>Busca ondas P y relaciónalas con los QRS.</li><li>Indica PR y ancho QRS solo si la señal permite medirlos.</li><li>Si hay ruido o faltan derivaciones, marca el resultado como no interpretable.</li></ol><p>Una coincidencia de reglas no es probabilidad ni diagnóstico. Confirma con un profesional.</p></aside></div>
+      </section>
+
+      <section id="view-library" class="view" aria-labelledby="libraryTitle">
+        <div class="page-heading"><div><p class="eyebrow">APRENDE CON SIMULACIONES</p><h1 id="libraryTitle">Biblioteca de ritmos</h1><p class="muted">Videos educativos incluidos en los recursos del proyecto.</p></div><span class="count-chip">27 simulaciones</span></div>
+        <div class="library-note"><span>▶</span><p>Estos videos son <strong>simulaciones educativas</strong>. No son señales recibidas por Bluetooth ni datos clínicos para entrenar una IA.</p></div>
+        <div class="practice-toolbar card"><label>Buscar un ritmo<input id="rhythmSearch" type="search" placeholder="Nombre, abreviatura o término…"></label><label>Filtrar por módulo<select id="rhythmModuleFilter"><option value="">Todos los módulos</option></select></label><span id="rhythmFilterCount" class="muted">27 ritmos</span></div>
+        <div class="video-layout"><div class="video-card card"><video id="educationVideo" controls playsinline preload="metadata" poster="assets/assets/challenge-backgrounds/ward1.png"></video><div class="video-caption"><div><p class="eyebrow">SIMULACIÓN EDUCATIVA</p><h2 id="videoTitle">Selecciona un ritmo</h2></div><span class="video-chip">DEMO</span></div><div id="videoInfo" class="rhythm-info"><div class="info-guide"><img id="infoDoctor" src="assets/assets/characters/doctor-01/default.svg" alt="Doctora guía"><div><small>GUÍA DE RITMO</small><p>Selecciona un ritmo para ver su descripción y características educativas.</p></div></div></div></div><div class="rhythm-list card" id="rhythmList" aria-label="Lista de ritmos"></div></div>
+      </section>
+
+      <section id="view-learn" class="view" aria-labelledby="learnTitle">
+        <div class="page-heading"><div><p class="eyebrow">RUTA EDUCATIVA · 27 PATRONES</p><h1 id="learnTitle">Aprender por etapas</h1><p class="muted">Avanza por módulos, estudia los hallazgos y practica el reconocimiento.</p></div><span class="count-chip" id="learningProgressLabel">0 de 27 lecciones</span></div>
+        <div class="learning-hero card"><img src="assets/assets/characters/doctor-02/presenting.svg" alt="Doctor guía"><div><span class="eyebrow">TU RUTA ECG</span><h2>Un ritmo a la vez</h2><p>Lecciones cortas creadas a partir de la guía educativa del proyecto. Tu progreso se guarda en este dispositivo.</p><div class="learning-progress-track"><span id="learningProgressBar"></span></div></div></div>
+        <div id="learningLesson" class="learning-lesson" hidden></div>
+        <div id="learningModules" class="learning-modules"></div>
+        <div class="disclaimer"><span>ⓘ</span><p><strong>Uso educativo.</strong> Los cuestionarios ayudan a repasar descripciones de ritmos; no interpretan ECG ni validan diagnósticos clínicos.</p></div>
+      </section>
+
+      <section id="view-challenge" class="view" aria-labelledby="challengeTitle">
+        <div class="page-heading"><div><p class="eyebrow">RETO DE RECONOCIMIENTO</p><h1 id="challengeTitle">Turno de ECG</h1><p class="muted">Resuelve casos educativos, gana puntos y completa tres turnos de cinco pacientes.</p></div><span class="count-chip" id="challengeScore">0 puntos · ♥♥♥♥♥</span></div>
+        <div id="challengeRoot"></div>
+        <div class="disclaimer"><span>ⓘ</span><p><strong>Simulación educativa.</strong> Los videos y casos no son pacientes ni señales clínicas. Este reto no prescribe tratamientos ni sustituye protocolos de atención.</p></div>
+      </section>
+
+      <section id="view-history" class="view" aria-labelledby="historyTitle">
+        <div class="page-heading"><div><p class="eyebrow">REGISTRO DE PRUEBAS</p><h1 id="historyTitle">Capturas</h1><p class="muted">Organiza señales del ProSim con la etiqueta del ritmo aplicado.</p></div></div>
+        <div class="card capture-form"><div class="form-heading"><div><h2>Guardar una captura</h2><p>Etiqueta el ritmo que estaba configurado en el ProSim.</p></div><span class="form-icon">＋</span></div><div class="form-grid"><label>Etiqueta del ritmo<select id="rhythmSelect"><option value="">Selecciona un ritmo…</option></select></label><label>Nota opcional<input id="captureNote" type="text" maxlength="120" placeholder="Ej. amplitud, ajuste del ProSim"></label></div><div class="form-actions"><span id="captureState" class="muted">Inicia una grabación para habilitar el guardado.</span><button class="button button-primary" id="saveCaptureBtn" disabled>Guardar y exportar CSV</button></div></div>
+        <div class="history-heading"><div><h2>Historial local</h2><p>Se conserva en este dispositivo.</p></div><button class="button button-ghost" id="clearHistoryBtn">Limpiar historial</button></div><div class="history-list" id="historyList"></div>
+      </section>
+
+      <section id="view-guide" class="view" aria-labelledby="guideTitle">
+        <div class="page-heading"><div><p class="eyebrow">CONFIGURACIÓN Y AYUDA</p><h1 id="guideTitle">Guía de uso</h1><p class="muted">Conecta el equipo y prepara una prueba reproducible.</p></div></div>
+        <div class="guide-grid"><article class="card guide-card"><img class="guide-doctor" src="assets/assets/characters/doctor-01/default.svg" alt="Doctora 1" loading="lazy"><span class="step-number">01</span><h2>Prepara el equipo</h2><p>Conecta el módulo ECG al ESP32 y alimenta el conjunto de forma segura. Confirma que el firmware anuncia un servicio BLE y publica muestras.</p></article><article class="card guide-card"><img class="guide-doctor" src="assets/assets/characters/doctor-02/default.svg" alt="Doctor 2" loading="lazy"><span class="step-number">02</span><h2>Configura Bluetooth</h2><p>En Configuración, ingresa los UUID y el formato de muestra definidos por el firmware. Activa Bluetooth y prueba conexión rápida o selección manual.</p></article><article class="card guide-card"><img class="guide-doctor" src="assets/assets/characters/doctor-03/default.svg" alt="Doctora 3" loading="lazy"><span class="step-number">03</span><h2>Verifica la lectura</h2><p>Comprueba que la curva se actualice, que la frecuencia de muestreo sea la esperada y que la señal no esté saturada ni plana.</p></article><article class="card guide-card"><img class="guide-doctor" src="assets/assets/characters/mascot-cat/presenting.svg" alt="Mascota CardioLab" loading="lazy"><span class="step-number">04</span><h2>Prueba con ProSim</h2><p>Selecciona un ritmo en el ProSim, inicia la grabación y usa esa misma etiqueta al guardar. Repite con distintas configuraciones.</p></article></div>
+        <section class="ecg-fundamentals"><div class="section-title"><div><p class="eyebrow">GUÍA DE ECG</p><h2>Una secuencia para leer la tira</h2><p>Describe primero lo que observas; no saltes directamente a una etiqueta.</p></div><img src="assets/assets/characters/doctor-03/presenting.svg" alt="Doctora guía" loading="lazy"></div><div class="ecg-topics"><article class="card ecg-topic"><span>01</span><h3>Frecuencia</h3><p>Estima cuántos complejos ventriculares aparecen por minuto.</p></article><article class="card ecg-topic"><span>02</span><h3>Regularidad</h3><p>Compara el espacio entre latidos; busca intervalos regulares, cíclicos o irregulares.</p></article><article class="card ecg-topic"><span>03</span><h3>Onda P</h3><p>Observa si existe actividad auricular antes de cada QRS y si su forma se repite.</p></article><article class="card ecg-topic"><span>04</span><h3>Intervalo PR</h3><p>Compara el tiempo entre el inicio de la onda P y el inicio del QRS.</p></article><article class="card ecg-topic"><span>05</span><h3>Complejo QRS</h3><p>Describe el ancho, la forma y si cada actividad auricular conduce a un QRS.</p></article><article class="card ecg-topic"><span>06</span><h3>Intervalo R–R</h3><p>Mide los espacios entre ondas R para evaluar regularidad y pausas.</p></article><article class="card ecg-topic"><span>07</span><h3>Segmento ST</h3><p>Inspecciona el segmento posterior al QRS con el contexto y la derivación adecuados.</p></article><article class="card ecg-topic"><span>08</span><h3>Intervalo QT</h3><p>Describe el tiempo desde el inicio del QRS hasta el final de la onda T.</p></article></div></section>
+        <div class="card required-info"><div class="required-icon">⌁</div><div><h2>Datos que faltan del firmware ESP32</h2><p>Para conectar el equipo real necesitamos: UUID del servicio y característica de notificación; formato exacto por muestra (texto o binario, signed/unsigned, endianess); frecuencia de muestreo; escala o conversión a mV; y si se envían encabezados, separadores o marcas de tiempo.</p></div></div>
+        <div class="card limitations"><h2>Alcance actual</h2><ul><li>La frecuencia cardíaca se estima desde intervalos entre picos; es experimental.</li><li>El comparador aplica reglas educativas del JSON con rasgos manuales; no analiza automáticamente la onda ni ofrece diagnóstico.</li><li>La señal de una derivación puede no permitir distinguir varios ritmos.</li><li>SpO₂ y presión arterial no se muestran porque el ECG no los mide.</li></ul></div>
+      </section>
+
+      <section id="view-settings" class="view" aria-labelledby="settingsTitle">
+        <div class="page-heading"><div><p class="eyebrow">DISPOSITIVO Y SEÑAL</p><h1 id="settingsTitle">Configuración</h1><p class="muted">Los valores deben coincidir con el firmware del ESP32.</p></div><span class="settings-icon">⚙</span></div>
+        <form id="settingsForm" class="card settings-form">
+          <div class="settings-section appearance-section"><div class="settings-section-title"><span class="section-icon">◐</span><div><h2>Apariencia</h2><p>Ajusta la lectura para tu entorno.</p></div></div><label class="theme-toggle-row">Modo nocturno<span><input id="darkModeToggle" type="checkbox"><i class="toggle-track"></i></span></label></div>
+          <div class="settings-section"><div class="settings-section-title"><span class="section-icon">⌁</span><div><h2>Bluetooth LE</h2><p>UUIDs usados para encontrar y recibir datos.</p></div></div><label>UUID del servicio<input id="serviceUuid" autocomplete="off" placeholder="Ej. 0000xxxx-0000-1000-8000-00805f9b34fb"></label><label>UUID de característica de notificación<input id="notifyUuid" autocomplete="off" placeholder="UUID desde el que llegan las muestras"></label><label>UUID de escritura (opcional)<input id="writeUuid" autocomplete="off" placeholder="Solo si el firmware requiere comandos"></label><label>Nombre anunciado (filtro opcional)<input id="deviceName" autocomplete="off" placeholder="Ej. ECG-ESP32"></label><div class="inline-help">Primero usa “Elegir dispositivo” para autorizar el ESP32; luego “Conexión rápida” puede reconectarlo. El navegador solicita permiso al seleccionar.</div></div>
+          <div class="settings-section"><div class="settings-section-title"><span class="section-icon">∿</span><div><h2>Formato de señal</h2><p>No se autocompleta con valores asumidos.</p></div></div><label>Formato de datos<select id="dataFormat"><option value="int16le">Entero 16-bit con signo · little-endian</option><option value="int16be">Entero 16-bit con signo · big-endian</option><option value="uint8">Entero 8-bit sin signo</option><option value="text">Texto delimitado (líneas/CSV)</option></select></label><div class="settings-two"><label>Frecuencia de muestreo (Hz)<input id="sampleRateInput" type="number" min="1" max="5000" placeholder="Obtener del firmware"></label><label>Escala / ganancia<input id="scaleInput" type="number" step="any" placeholder="1 = muestras crudas"></label></div><div class="inline-help">La curva puede mostrarse en unidades crudas. Para convertir a mV ingresa la escala documentada por el firmware.</div></div>
+          <div class="form-actions"><span id="settingsSaved" class="muted">Cambios guardados solo en este dispositivo.</span><button class="button button-primary" type="submit">Guardar configuración</button></div>
+        </form>
+        <div class="card install-info"><div class="required-icon">↓</div><div><h2>Instalar en el celular</h2><p>Publica esta carpeta mediante HTTPS (o sírvela en una red local con certificado seguro). En Android, abre el enlace en Chrome y elige “Instalar aplicación”. BLE requiere un contexto seguro. El soporte BLE del navegador depende del sistema operativo.</p><p class="muted">Para distribución iOS/Android con BLE nativo, se recomienda empaquetar la interfaz con Capacitor y un plugin BLE; este proyecto inicial funciona como PWA.</p></div></div>
+      </section>
+    </main>
+
+    <button id="drawerBackdrop" class="drawer-backdrop" type="button" aria-label="Cerrar navegación" hidden></button>
+    <aside id="appSidebar" class="app-sidebar" aria-label="Navegación principal">
+      <div class="sidebar-top"><a class="brand" href="#monitor" aria-label="CardioLab, monitor"><span class="brand-mark" aria-hidden="true"><span></span><i></i></span><span>Cardio<span>Lab</span></span></a><button id="drawerClose" class="icon-button drawer-close" type="button" aria-label="Cerrar navegación">×</button></div>
+      <nav>
+        <a href="#learn" data-view="learn" class="nav-item"><span class="nav-icon learn"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span><small>Aprender</small></a>
+        <a href="#library" data-view="library" class="nav-item"><span class="nav-icon practice"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16M8 3v4M16 10v4M10 17v4"/></svg></span><small>Práctica</small></a>
+        <a href="#predict" data-view="predict" class="nav-item"><span class="nav-icon predict"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 5-7"/></svg></span><small>Predictor</small></a>
+        <a href="#monitor" data-view="monitor" class="nav-item active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><small>Monitor ECG</small></a>
+        <a href="#challenge" data-view="challenge" class="nav-item"><span class="nav-icon challenge"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/></svg></span><small>Reto</small></a>
+        <a href="#history" data-view="history" class="nav-item"><span class="nav-icon guide"><svg viewBox="0 0 24 24"><path d="M7 3h10v18l-5-3-5 3V3Z"/><path d="M9.5 8h5M9.5 12h5"/></svg></span><small>Capturas</small></a>
+        <a href="#guide" data-view="guide" class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg></span><small>Guía ECG</small></a>
+        <a href="#settings" data-view="settings" class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 1.8Z"/></svg></span><small>Ajustes</small></a>
+      </nav>
+      <div class="sidebar-footer"><button id="sidebarThemeToggle" class="theme-toggle" type="button"><span class="theme-symbol">◐</span><span>Modo nocturno</span></button><p>Observa la señal.<br>Aprende el ritmo.</p><div class="sidebar-connection"><span class="status-dot"></span><span id="sidebarConnectionText">Sin conectar</span></div></div>
+    </aside>
+    <footer class="desktop-footer"><span>CardioLab · Prototipo educativo</span><span>Sin fines de diagnóstico clínico</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/data/rhythm-guides.js" defer></script>
+  <script src="classifier-engine.js" defer></script>
+  <script src="learning-experience.js" defer></script>
+  <script src="ecgenius-features.js" defer></script>
+  <script src="assets/model/ecg-model-weights.js" defer></script>
+  <script src="ecg-model.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
+

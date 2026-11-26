@@ -1,0 +1,2596 @@
+{
+  "version": "1.0",
+  "source_title": "CARDIAC RHYTHMS GAME - CONTENT FILE",
+  "educational_only": true,
+  "classifier_schema": {
+    "version": "1.0",
+    "purpose": "Educational rule-based ECG rhythm pattern matching for ECGenius Predict. Not a clinical diagnostic tool.",
+    "inputs": [
+      {
+        "id": "heart_rate_bpm",
+        "label": "Heart Rate",
+        "type": "number_or_unmeasurable",
+        "unit": "bpm",
+        "required": true,
+        "allowed_special_values": [
+          "unmeasurable"
+        ],
+        "ui_hint": "Use a numeric bpm when measurable; choose Unmeasurable for chaotic rhythms such as VF."
+      },
+      {
+        "id": "ventricular_regularity",
+        "label": "R-R / Ventricular Regularity",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "regular",
+          "slightly_irregular",
+          "cyclic_irregular",
+          "regularly_irregular",
+          "irregularly_irregular",
+          "chaotic",
+          "unclear"
+        ]
+      },
+      {
+        "id": "p_wave_morphology",
+        "label": "P-Wave Morphology",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "normal_sinus",
+          "absent",
+          "fibrillatory",
+          "flutter_waves",
+          "variable_3plus",
+          "retrograde_or_inverted",
+          "premature_abnormal",
+          "paced_p",
+          "dissociated",
+          "unclear"
+        ]
+      },
+      {
+        "id": "pqrs_relationship",
+        "label": "P:QRS Relationship",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "one_to_one",
+          "some_p_not_conducted",
+          "two_to_one",
+          "av_dissociation",
+          "none_identifiable",
+          "premature_atrial",
+          "premature_junctional",
+          "premature_ventricular",
+          "paced_atrial_capture",
+          "paced_ventricular_capture",
+          "unclear"
+        ]
+      },
+      {
+        "id": "pr_behavior",
+        "label": "PR Interval / Behavior",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "normal_constant",
+          "prolonged_constant",
+          "progressively_lengthening_then_drop",
+          "constant_with_dropped_qrs",
+          "variable",
+          "short_if_visible",
+          "not_measurable",
+          "not_applicable",
+          "unclear"
+        ]
+      },
+      {
+        "id": "qrs_width",
+        "label": "QRS Width",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "narrow",
+          "wide",
+          "absent",
+          "variable_or_escape",
+          "unclear"
+        ]
+      },
+      {
+        "id": "premature_beat_pattern",
+        "label": "Premature Beat Pattern",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "none",
+          "pac",
+          "pjc",
+          "pvc",
+          "unclear"
+        ]
+      },
+      {
+        "id": "pacing_activity",
+        "label": "Pacing Activity",
+        "type": "enum",
+        "required": true,
+        "options": [
+          "none",
+          "atrial_spike_before_p",
+          "ventricular_spike_before_qrs",
+          "unclear"
+        ]
+      },
+      {
+        "id": "pause_behavior",
+        "label": "Pause Behavior",
+        "type": "enum",
+        "required": false,
+        "conditional": true,
+        "show_when": "A pause or dropped-beat pattern is present or suspected.",
+        "options": [
+          "none",
+          "multiple_of_baseline",
+          "nonmultiple_of_baseline",
+          "cyclic_respiratory",
+          "unclear"
+        ]
+      },
+      {
+        "id": "conduction_ratio",
+        "label": "Atrial:Ventricular Conduction Ratio",
+        "type": "enum",
+        "required": false,
+        "conditional": true,
+        "show_when": "Flutter or AV block is suspected, or more P waves than QRS complexes are visible.",
+        "options": [
+          "one_to_one",
+          "two_to_one",
+          "variable_block",
+          "complete_dissociation",
+          "not_applicable",
+          "unclear"
+        ]
+      }
+    ],
+    "operators": [
+      "equals",
+      "in",
+      "not_equals",
+      "between",
+      "lt",
+      "lte",
+      "gt",
+      "gte",
+      "unmeasurable"
+    ],
+    "scoring": {
+      "rule_types": {
+        "required": "A defining feature. If answered and contradicted, the rhythm is excluded. If unanswered/unclear, the result may remain possible but should not be labeled a strong match.",
+        "supporting": "Adds weighted evidence when matched. A missing/unclear value adds no score.",
+        "conflict": "Subtracts/excludes when a clearly contradictory feature is present."
+      },
+      "normalize_supporting_score": true,
+      "strong_match_guidance": "All answered required rules must match and the normalized supporting match should be high relative to alternatives.",
+      "ambiguity_guidance": "If the top two compatible rhythms have close normalized scores or key differentiating required fields are unknown, return an ambiguous result with both candidates.",
+      "insufficient_guidance": "If too few discriminating inputs are known, or no rhythm satisfies its required rules, request more/reviewed information.",
+      "never_label_as_probability": true,
+      "display_label": "Pattern match score"
+    },
+    "result_states": [
+      "strong_match",
+      "ambiguous",
+      "insufficient_or_inconsistent"
+    ],
+    "safety_copy": "ECGenius compares entered characteristics with educational ECG rhythm patterns. It does not analyze a clinical ECG and does not provide a medical diagnosis."
+  },
+  "pathologies": [
+    {
+      "id": "sinus-rhythm",
+      "pathology": "Sinus Rhythm",
+      "short_name": "NSR",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character1",
+      "definition": "The normal rhythm of the heart. The sinoatrial (SA) node starts every beat at 60-100 bpm and the impulse travels normally through the atria, AV node and ventricles. It is the standard against which every other rhythm is compared.",
+      "ecg_characteristics": [
+        "Heart rate: 60-100 bpm",
+        "Rhythm: Regular",
+        "P wave: Upright in lead II, uniform, one P before every QRS",
+        "PR interval: 0.12-0.20 s, constant",
+        "QRS complex: Narrow (< 0.12 s)",
+        "R-R interval: Constant (very slight variation is normal)",
+        "ST segment: Isoelectric (flat)",
+        "Other relevant characteristics: P wave is upright in lead II and inverted in aVR; every P is followed by a QRS and a T wave."
+      ],
+      "key_learning_points": [
+        "Every QRS has a matching upright P wave in lead II.",
+        "Regular, 60-100 bpm, PR 0.12-0.20 s, QRS narrow.",
+        "A normal-looking rhythm on the monitor does not guarantee a pulse: check the patient."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P-wave morphology."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Each P wave conducts to a QRS."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 60,
+              "max": 100
+            },
+            "explanation": "Rate in the normal sinus range.",
+            "weight": 3
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Regular R-R intervals.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR interval is normal and constant.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No premature beat pattern.",
+            "weight": 1
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing spikes.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "fibrillatory",
+              "flutter_waves",
+              "variable_3plus"
+            ],
+            "explanation": "Non-sinus P-wave pattern conflicts with NSR."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Irregularly irregular rhythm conflicts with NSR."
+          }
+        ]
+      }
+    },
+    {
+      "id": "sinus-bradycardia",
+      "pathology": "Sinus Bradycardia",
+      "short_name": "SB",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character2",
+      "definition": "A sinus rhythm with a rate below 60 bpm. The SA node is still the pacemaker and conduction is normal, but it fires slowly. It can be normal (athletes, sleep) or a sign of disease.",
+      "ecg_characteristics": [
+        "Heart rate: < 60 bpm (typically 40-59)",
+        "Rhythm: Regular",
+        "P wave: Normal, upright, one before each QRS",
+        "PR interval: 0.12-0.20 s, constant",
+        "QRS complex: Narrow",
+        "R-R interval: Constant but long (> 1 s)",
+        "ST segment: Isoelectric",
+        "Other relevant characteristics: Same appearance as sinus rhythm with a longer pause between the T wave and the next P wave."
+      ],
+      "key_learning_points": [
+        "It is sinus rhythm, only slower: rate below 60 bpm.",
+        "Treat the patient, not the number: only symptomatic bradycardia needs atropine or pacing.",
+        "Atropine 1 mg IV, repeat every 3-5 min, maximum 3 mg."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "lt",
+            "value": 60,
+            "explanation": "Sinus bradycardia is below 60 bpm."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Sinus P-wave morphology is preserved."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Each P conducts to QRS."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Regular rhythm.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR is normal and constant.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No ectopic premature beat pattern.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gte",
+            "value": 60,
+            "explanation": "A rate at or above 60 bpm conflicts with sinus bradycardia."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "not_equals",
+            "value": "none",
+            "explanation": "Pacing activity argues for a paced rhythm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "sinus-tachycardia",
+      "pathology": "Sinus Tachycardia",
+      "short_name": "ST",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character3",
+      "definition": "A sinus rhythm with a rate above 100 bpm. It is almost always the body's response to something (fever, pain, anxiety, blood loss, hypoxia) and not a primary heart disease.",
+      "ecg_characteristics": [
+        "Heart rate: 101-150 bpm (maximum roughly 220 minus age)",
+        "Rhythm: Regular",
+        "P wave: Normal and upright; may merge with the T wave of the previous beat at faster rates",
+        "PR interval: 0.12-0.20 s (tends to shorten)",
+        "QRS complex: Narrow",
+        "R-R interval: Constant and short",
+        "ST segment: May show mild rate-related depression",
+        "Other relevant characteristics: Gradual onset and gradual slowing (unlike SVT, which starts and stops abruptly). Rate rarely exceeds 150-160 at rest in adults."
+      ],
+      "key_learning_points": [
+        "Sinus tachycardia is a symptom, not a disease: hunt for the cause.",
+        "Normal P waves, narrow QRS, gradual onset, rate usually below 150 bpm.",
+        "Never cardiovert sinus tachycardia."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 101,
+              "max": 150
+            },
+            "explanation": "Rate fits the teaching range for sinus tachycardia."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Sinus P waves remain present."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Each P conducts to a QRS."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Regular rhythm.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR generally remains measurable.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No ectopic premature pattern.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "flutter_waves",
+              "fibrillatory"
+            ],
+            "explanation": "Absent/flutter/fibrillatory atrial activity conflicts with sinus tachycardia."
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 150,
+            "explanation": "Rates above the configured sinus-tachycardia teaching range should prompt another rhythm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "sinus-arrhythmia",
+      "pathology": "Sinus Arrhythmia",
+      "short_name": "SinusArr",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character1",
+      "definition": "A sinus rhythm in which the rate changes in cycles, most often with breathing: the heart speeds up when the person breathes in and slows down when they breathe out. It is a normal variant, especially in children and young adults.",
+      "ecg_characteristics": [
+        "Heart rate: 60-100 bpm, varying with respiration",
+        "Rhythm: Irregular in a cyclic (phasic) pattern",
+        "P wave: Normal and uniform, one before each QRS",
+        "PR interval: 0.12-0.20 s, constant",
+        "QRS complex: Narrow",
+        "R-R interval: Gradually shortens and lengthens; longest and shortest differ by more than 0.12 s",
+        "ST segment: Isoelectric",
+        "Other relevant characteristics: Disappears when the patient holds their breath. Every QRS still has a normal P wave, which separates it from atrial fibrillation."
+      ],
+      "key_learning_points": [
+        "Irregular, but every QRS still has a normal P wave.",
+        "The rate rises when breathing in and falls when breathing out.",
+        "Benign: no treatment, and do not confuse it with atrial fibrillation."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Sinus P waves are preserved."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Each P conducts to QRS."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "cyclic_irregular",
+            "explanation": "R-R intervals vary in a cyclic pattern."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 60,
+              "max": 100
+            },
+            "explanation": "Typical teaching rate range.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR remains constant.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "cyclic_respiratory",
+            "explanation": "Cyclic respiratory variation supports sinus arrhythmia.",
+            "weight": 3
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Random irregularity conflicts with respiratory sinus arrhythmia."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "absent",
+            "explanation": "Absent P waves conflict with sinus arrhythmia."
+          }
+        ]
+      }
+    },
+    {
+      "id": "sinus-exit-block",
+      "pathology": "Sinus Exit Block",
+      "short_name": "SEB",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character2",
+      "definition": "The SA node fires on time, but the impulse is blocked before it leaves the node and reaches the atria. One P-QRS-T is missing, so the pause is an exact multiple (2x, 3x) of the normal P-P interval.",
+      "ecg_characteristics": [
+        "Heart rate: Baseline usually 40-100 bpm; average rate is lower because of the pauses",
+        "Rhythm: Regular with sudden pauses (regularly irregular)",
+        "P wave: Normal when present; absent during the pause",
+        "PR interval: Constant",
+        "QRS complex: Narrow",
+        "R-R interval: Constant, except for the pause, which equals 2x (or 3x) the basic interval",
+        "ST segment: Isoelectric",
+        "Other relevant characteristics: After the pause the underlying rhythm resumes ON TIME. In type I (Wenckebach) SA block the P-P interval shortens before the pause; in type II the pause is a fixed multiple."
+      ],
+      "key_learning_points": [
+        "The pause is an exact multiple (2x, 3x) of the normal P-P interval.",
+        "The SA node fires on time; the impulse just does not get out.",
+        "Pause plus dizziness or syncope: treat like symptomatic bradycardia."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "multiple_of_baseline",
+            "explanation": "Pause is a fixed multiple of the baseline sinus interval."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P waves are present outside the pause."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Regular baseline rhythm interrupted by a pause.",
+            "weight": 3
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR remains constant in conducted beats.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "Conducted beats are usually narrow.",
+            "weight": 1
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No premature beat explains the pause.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "nonmultiple_of_baseline",
+            "explanation": "A non-multiple pause favors sinus arrest rather than exit block."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "not_equals",
+            "value": "none",
+            "explanation": "Pacing activity suggests a paced mechanism."
+          }
+        ]
+      }
+    },
+    {
+      "id": "sinus-arrest",
+      "pathology": "Sinus Arrest",
+      "short_name": "SArrest",
+      "module": "MODULE 1 - SINUS RHYTHMS & SINUS NODE DISORDERS",
+      "character": "character3",
+      "definition": "The SA node temporarily fails to generate an impulse, so there is no P wave and no QRS for a period of time. The pause is NOT a multiple of the normal P-P interval and is often ended by an escape beat from the AV junction or ventricles.",
+      "ecg_characteristics": [
+        "Heart rate: Baseline usually 40-100 bpm; lower overall because of the pause",
+        "Rhythm: Irregular because of the pause",
+        "P wave: Normal when present; absent during the pause",
+        "PR interval: Constant when P waves are present",
+        "QRS complex: Narrow (junctional escape beat) or wide (ventricular escape beat)",
+        "R-R interval: A pause of variable length that is not a multiple of the basic interval",
+        "ST segment: Isoelectric",
+        "Other relevant characteristics: Pauses of about 3 seconds or more are usually called arrest. The sinus rhythm may resume at a different timing than expected."
+      ],
+      "key_learning_points": [
+        "A pause with no P and no QRS; its length is NOT a multiple of the normal P-P interval.",
+        "Look for an escape beat (junctional or ventricular) that ends the pause.",
+        "Long pause plus symptoms: atropine, pacing, and think permanent pacemaker."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "nonmultiple_of_baseline",
+            "explanation": "Pause is not an exact multiple of the baseline sinus interval."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P waves are present when sinus activity resumes."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "in",
+            "value": [
+              "regularly_irregular",
+              "slightly_irregular"
+            ],
+            "explanation": "A pause makes the rhythm irregular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "PR is constant when sinus P waves conduct.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "in",
+            "value": [
+              "narrow",
+              "variable_or_escape"
+            ],
+            "explanation": "QRS may remain narrow or reflect an escape beat.",
+            "weight": 1
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No premature beat explains the pause.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "multiple_of_baseline",
+            "explanation": "A fixed multiple pause favors sinus exit block."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Random continuous irregularity suggests another rhythm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "nsr-with-pac",
+      "pathology": "NSR with PAC",
+      "short_name": "NSR+PAC",
+      "module": "MODULE 2 - ATRIAL & SUPRAVENTRICULAR RHYTHMS",
+      "character": "character1",
+      "definition": "A normal sinus rhythm interrupted by an early beat from an irritable spot in the atria (premature atrial complex). The early beat comes before the next expected sinus beat and usually has a different-looking P wave.",
+      "ecg_characteristics": [
+        "Heart rate: Depends on the underlying sinus rhythm (usually 60-100 bpm)",
+        "Rhythm: Regular except for the premature beat(s)",
+        "P wave: Premature P' with a different shape (notched, biphasic, flattened or inverted); may be hidden in the previous T wave or not followed by a QRS (non-conducted PAC)",
+        "PR interval: May differ from the normal beats",
+        "QRS complex: Narrow (occasionally wide if conducted with aberrancy; absent if non-conducted)",
+        "R-R interval: The premature interval is shorter; the pause after is usually less than compensatory",
+        "ST segment: Normal",
+        "Other relevant characteristics: Can occur in patterns: bigeminy (every 2nd beat), trigeminy (every 3rd), quadrigeminy (every 4th). A non-conducted PAC looks like a pause."
+      ],
+      "key_learning_points": [
+        "An early beat with a different-looking P wave and a narrow QRS.",
+        "The pause after it is usually short (non-compensatory).",
+        "Benign, but frequent PACs can be a warning sign for atrial fibrillation."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pac",
+            "explanation": "A premature atrial complex is present."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "premature_atrial",
+            "explanation": "The early beat is atrial in origin."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "premature_abnormal",
+            "explanation": "Premature P wave has an abnormal morphology.",
+            "weight": 4
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "PAC is usually followed by a narrow QRS.",
+            "weight": 2
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Underlying rhythm is regular except for the premature beat.",
+            "weight": 2
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 60,
+              "max": 100
+            },
+            "explanation": "Underlying sinus rate is commonly 60-100 bpm.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pvc",
+            "explanation": "Wide ventricular premature morphology favors PVC."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "not_equals",
+            "value": "none",
+            "explanation": "Pacing activity suggests a paced rhythm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "svt",
+      "pathology": "SVT",
+      "short_name": "SVT",
+      "module": "MODULE 2 - ATRIAL & SUPRAVENTRICULAR RHYTHMS",
+      "character": "character2",
+      "definition": "A very fast, regular, narrow-complex tachycardia that starts above the ventricles, usually from a reentry circuit in or near the AV node (AVNRT) or through an accessory pathway (AVRT). It typically starts and stops abruptly (paroxysmal SVT).",
+      "ecg_characteristics": [
+        "Heart rate: 150-250 bpm (typically 160-220)",
+        "Rhythm: Very regular",
+        "P wave: Absent or hidden in the QRS/T; a retrograde P' may appear right after the QRS",
+        "PR interval: Not measurable",
+        "QRS complex: Narrow (< 0.12 s) unless there is aberrant conduction",
+        "R-R interval: Constant, almost perfectly regular",
+        "ST segment: Rate-related ST depression may be present",
+        "Other relevant characteristics: Abrupt onset and abrupt end. The rate does not change with breathing or activity. It can stop with vagal maneuvers or adenosine."
+      ],
+      "key_learning_points": [
+        "Regular, narrow, very fast (150-250 bpm) with no visible P waves and an abrupt onset.",
+        "Stable: vagal maneuvers, then adenosine 6 mg and 12 mg. Unstable: synchronized cardioversion.",
+        "Give adenosine as a fast push followed by a rapid saline flush."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 150,
+              "max": 250
+            },
+            "explanation": "Rate fits the teaching range for SVT."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "SVT is typically very regular."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "Typical SVT is a narrow-complex tachycardia."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "retrograde_or_inverted"
+            ],
+            "explanation": "P waves may be hidden or retrograde.",
+            "weight": 3
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_measurable",
+            "explanation": "PR is often not measurable at fast rates.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No isolated premature ectopic beat pattern.",
+            "weight": 1
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing spike pattern.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "flutter_waves",
+            "explanation": "Flutter waves favor atrial flutter."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Irregularly irregular rhythm favors AF rather than SVT."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "A wide-complex tachycardia is not safely classifiable as generic SVT from these fields alone."
+          }
+        ],
+        "ambiguity_note": "A regular narrow-complex tachycardia can have multiple supraventricular mechanisms; ECGenius classifies only the teaching label represented in the dataset."
+      }
+    },
+    {
+      "id": "atrial-fibrillation",
+      "pathology": "Atrial Fibrillation",
+      "short_name": "AFib",
+      "module": "MODULE 2 - ATRIAL & SUPRAVENTRICULAR RHYTHMS",
+      "character": "character3",
+      "definition": "Chaotic, disorganized electrical activity in the atria (350-600 impulses per minute) with no effective atrial contraction. The AV node lets impulses through at random, so the ventricles beat in a completely irregular way.",
+      "ecg_characteristics": [
+        "Heart rate: Atrial 350-600; ventricular variable, usually 60-170 bpm (rapid ventricular response above 100-110)",
+        "Rhythm: Irregularly irregular",
+        "P wave: Absent; fine or coarse fibrillatory (f) waves on the baseline",
+        "PR interval: Not measurable",
+        "QRS complex: Narrow (unless bundle branch block or aberrancy)",
+        "R-R interval: Completely random, no repeating pattern",
+        "ST segment: Non-specific, often rate-related depression",
+        "Other relevant characteristics: Loss of the atrial contribution to filling; blood stasis in the left atrial appendage raises stroke risk. Pulse deficit (apical rate higher than radial). Types: paroxysmal, persistent, permanent."
+      ],
+      "key_learning_points": [
+        "Irregularly irregular R-R intervals, no P waves and a quivering baseline.",
+        "Main dangers: stroke (anticoagulate by CHA2DS2-VASc) and a rapid ventricular rate.",
+        "Unstable: synchronized cardioversion 120-200 J. Stable: rate control."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Irregularly irregular ventricular response is a hallmark feature."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "fibrillatory"
+            ],
+            "explanation": "No discrete consistent P waves are seen."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_measurable",
+            "explanation": "PR interval is not measurable.",
+            "weight": 3
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is usually narrow unless conduction disease/aberrancy is present.",
+            "weight": 1
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "none_identifiable",
+            "explanation": "No consistent P:QRS relationship.",
+            "weight": 3
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing spikes.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Consistent sinus P waves conflict with AF."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "A perfectly regular ventricular rhythm strongly conflicts with the teaching pattern for AF."
+          }
+        ]
+      }
+    },
+    {
+      "id": "atrial-flutter",
+      "pathology": "Atrial Flutter",
+      "short_name": "AFlutter",
+      "module": "MODULE 2 - ATRIAL & SUPRAVENTRICULAR RHYTHMS",
+      "character": "character1",
+      "definition": "A rapid, organized reentrant circuit in the atria (usually the right atrium, around the cavotricuspid isthmus) firing at about 250-350 per minute. It creates \"sawtooth\" flutter waves, and the AV node conducts only some of them (for example 2:1 or 4:1).",
+      "ecg_characteristics": [
+        "Heart rate: Atrial 250-350 bpm; ventricular usually 75-150 bpm",
+        "Rhythm: Atrial regular; ventricular regular if the ratio is fixed, irregular if it varies",
+        "P wave: No true P waves; flutter (F) waves with a sawtooth pattern, best seen in II, III, aVF and V1",
+        "PR interval: Not measurable",
+        "QRS complex: Narrow",
+        "R-R interval: Regular (fixed block) or regularly irregular (variable block)",
+        "ST segment: Hidden by the F waves",
+        "Other relevant characteristics: A ventricular rate fixed near 150 bpm suggests flutter with 2:1 block. Vagal maneuvers or adenosine slow the ventricular rate and reveal the F waves."
+      ],
+      "key_learning_points": [
+        "Sawtooth flutter waves at about 300 per minute instead of P waves.",
+        "A fixed ventricular rate near 150 bpm is flutter with 2:1 block until proven otherwise.",
+        "Same stroke risk as AFib; ablation of the cavotricuspid isthmus can cure typical flutter."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "flutter_waves",
+            "explanation": "Sawtooth/flutter atrial activity is the key feature."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_measurable",
+            "explanation": "PR is not measurable through flutter waves.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is usually narrow.",
+            "weight": 1
+          },
+          {
+            "feature": "conduction_ratio",
+            "operator": "in",
+            "value": [
+              "two_to_one",
+              "variable_block"
+            ],
+            "explanation": "A fixed 2:1 or variable AV conduction ratio supports flutter.",
+            "weight": 4
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "in",
+            "value": [
+              "regular",
+              "regularly_irregular"
+            ],
+            "explanation": "Ventricular rhythm can be regular with fixed block or irregular with variable block.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "irregularly_irregular",
+            "explanation": "Completely random irregularity without flutter waves favors AF."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P waves conflict with flutter."
+          }
+        ],
+        "ambiguity_note": "A ventricular rate near 150 bpm is supportive of 2:1 flutter but is not mandatory."
+      }
+    },
+    {
+      "id": "wandering-pacemaker",
+      "pathology": "Wandering Pacemaker",
+      "short_name": "WAP",
+      "module": "MODULE 2 - ATRIAL & SUPRAVENTRICULAR RHYTHMS",
+      "character": "character2",
+      "definition": "The pacemaker site shifts from beat to beat between the SA node, the atria and the AV junction, producing at least three different P-wave shapes. With a rate below 100 bpm it is called wandering atrial pacemaker; at 100 bpm or more it becomes multifocal atrial tachycardia (MAT).",
+      "ecg_characteristics": [
+        "Heart rate: 40-100 bpm (usually 60-90)",
+        "Rhythm: Slightly irregular",
+        "P wave: At least 3 different morphologies (upright, flattened, notched, inverted); one P before each QRS",
+        "PR interval: Varies from beat to beat (shorter when the focus is near the AV junction)",
+        "QRS complex: Narrow",
+        "R-R interval: Varies slightly",
+        "ST segment: Normal",
+        "Other relevant characteristics: The change in P shape is gradual. Common in COPD, healthy young people, athletes and older adults with vagal tone."
+      ],
+      "key_learning_points": [
+        "At least three different P-wave shapes with a changing PR interval.",
+        "Below 100 bpm = wandering pacemaker; 100 bpm or more = multifocal atrial tachycardia (often COPD).",
+        "Benign by itself: treat the cause, not the rhythm."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "variable_3plus",
+            "explanation": "At least three different P-wave morphologies are present."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Each atrial impulse is conducted to QRS in the teaching pattern."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 40,
+              "max": 100
+            },
+            "explanation": "Rate is generally 40-100 bpm.",
+            "weight": 2
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "in",
+            "value": [
+              "slightly_irregular",
+              "regularly_irregular"
+            ],
+            "explanation": "Rhythm is mildly irregular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "variable",
+            "explanation": "PR varies as the atrial focus shifts.",
+            "weight": 3
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is narrow.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Uniform sinus P waves conflict with wandering pacemaker."
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 100,
+            "explanation": "A rate above 100 bpm suggests a different multifocal atrial rhythm rather than WAP."
+          }
+        ]
+      }
+    },
+    {
+      "id": "nsr-with-1-degree-avb",
+      "pathology": "NSR with 1° AVB",
+      "short_name": "1° AVB",
+      "module": "MODULE 3 - AV CONDUCTION BLOCKS",
+      "character": "character3",
+      "definition": "A sinus rhythm in which conduction through the AV node is slow but complete: the PR interval is longer than 0.20 s, and every P wave is still followed by a QRS. It is a delay, not a true block.",
+      "ecg_characteristics": [
+        "Heart rate: Depends on the underlying rhythm (usually 60-100 bpm)",
+        "Rhythm: Regular",
+        "P wave: Normal, one before every QRS",
+        "PR interval: Longer than 0.20 s (more than one large box) and constant",
+        "QRS complex: Narrow (unless a bundle branch block is present)",
+        "R-R interval: Regular",
+        "ST segment: Normal",
+        "Other relevant characteristics: At faster rates the P wave can sit close to the previous T wave. No beats are dropped."
+      ],
+      "key_learning_points": [
+        "Every P conducts, but the PR interval is longer than 0.20 s and constant.",
+        "Usually benign: review AV-nodal drugs and watch for progression.",
+        "First-degree means a long PR with nothing dropped."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "prolonged_constant",
+            "explanation": "PR is prolonged and constant."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "Every P still conducts to QRS."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Sinus P waves are present.",
+            "weight": 2
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Rhythm is regular.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is often narrow.",
+            "weight": 1
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 60,
+              "max": 100
+            },
+            "explanation": "Underlying sinus rate is commonly 60-100 bpm.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "some_p_not_conducted",
+            "explanation": "Dropped beats indicate second-degree block, not first-degree."
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "A normal PR conflicts with first-degree AV block."
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-degree-avb-type-i",
+      "pathology": "2° AVB Type I",
+      "short_name": "2° AVB I",
+      "module": "MODULE 3 - AV CONDUCTION BLOCKS",
+      "character": "character1",
+      "definition": "Second-degree AV block Mobitz I (Wenckebach). The PR interval gets longer with each beat until one P wave is not conducted and a QRS is dropped. The block is within the AV node.",
+      "ecg_characteristics": [
+        "Heart rate: Atrial normal; ventricular slightly lower because of dropped beats (often 50-80 bpm)",
+        "Rhythm: Regularly irregular (grouped beating); P-P interval is regular",
+        "P wave: Normal; one P per group is not followed by a QRS",
+        "PR interval: Progressively lengthens until a beat is dropped, then resets",
+        "QRS complex: Narrow",
+        "R-R interval: Progressively shortens before the pause; the pause is less than 2x the shortest R-R",
+        "ST segment: Normal",
+        "Other relevant characteristics: Group ratios such as 3:2, 4:3, 5:4. The first PR after the pause is the shortest."
+      ],
+      "key_learning_points": [
+        "\"Longer, longer, longer, drop!\": the PR lengthens until a QRS is dropped.",
+        "The block is in the AV node: usually benign, and atropine often works.",
+        "Group beating, with R-R intervals shortening before each pause."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "progressively_lengthening_then_drop",
+            "explanation": "PR progressively lengthens until a QRS is dropped."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "some_p_not_conducted",
+            "explanation": "At least one P wave is not conducted."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Grouped beating produces regular irregularity.",
+            "weight": 3
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Sinus P waves continue through the sequence.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is commonly narrow in nodal Wenckebach.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "constant_with_dropped_qrs",
+            "explanation": "Constant PR with sudden dropped beats favors Mobitz II."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "two_to_one",
+            "explanation": "2:1 conduction cannot be reliably labeled Mobitz I from the ratio alone."
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-degree-avb-type-ii",
+      "pathology": "2° AVB Type II",
+      "short_name": "2° AVB II",
+      "module": "MODULE 3 - AV CONDUCTION BLOCKS",
+      "character": "character2",
+      "definition": "Second-degree AV block Mobitz II. Some P waves suddenly fail to conduct WITHOUT any earlier PR lengthening. The block is usually below the AV node (His-Purkinje system), so it is unpredictable and can progress to complete heart block.",
+      "ecg_characteristics": [
+        "Heart rate: Atrial normal (60-100); ventricular lower depending on how many P waves are blocked",
+        "Rhythm: P-P regular; R-R regular with sudden pauses",
+        "P wave: Normal; some are not followed by a QRS",
+        "PR interval: Constant in every conducted beat (normal or prolonged)",
+        "QRS complex: Often wide (bundle branch block); can be narrow",
+        "R-R interval: Pause equals 2x the basic interval when a single beat is dropped",
+        "ST segment: Normal, or changes related to bundle branch block",
+        "Other relevant characteristics: High-grade block if 2 or more consecutive P waves are blocked. Can progress suddenly to third-degree block."
+      ],
+      "key_learning_points": [
+        "The PR interval is constant, then a QRS suddenly drops without warning.",
+        "Infranodal block, often with a wide QRS; it can progress to complete heart block.",
+        "Pads on early: pacing is the treatment, and atropine may not work (or may make it worse)."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "constant_with_dropped_qrs",
+            "explanation": "Conducted beats keep a constant PR before sudden dropped QRS complexes."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "some_p_not_conducted",
+            "explanation": "Some P waves fail to conduct."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Sudden dropped beats interrupt an otherwise regular rhythm.",
+            "weight": 2
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Atrial rhythm continues regularly.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "in",
+            "value": [
+              "wide",
+              "narrow"
+            ],
+            "explanation": "QRS may be wide or narrow; width is supportive but not defining.",
+            "weight": 1
+          },
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "multiple_of_baseline",
+            "explanation": "A dropped beat can create a pause equal to a multiple of the baseline cycle.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "progressively_lengthening_then_drop",
+            "explanation": "Progressive PR lengthening favors Mobitz I."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "two_to_one",
+            "explanation": "2:1 AV block should remain its own classification when every other P is blocked."
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-degree-avb-2-1",
+      "pathology": "2° AVB 2:1",
+      "short_name": "2:1 AVB",
+      "module": "MODULE 3 - AV CONDUCTION BLOCKS",
+      "character": "character3",
+      "definition": "A second-degree AV block in which every second P wave fails to conduct (2 P waves for each QRS). Because the PR interval never changes, it is impossible to classify it as Type I or Type II from this pattern alone.",
+      "ecg_characteristics": [
+        "Heart rate: Ventricular rate is half of the atrial rate (for example atrial 100-120, ventricular 50-60)",
+        "Rhythm: Regular",
+        "P wave: Normal; two P waves for every QRS, one conducted and one blocked (the blocked P can hide in the T wave)",
+        "PR interval: Constant in the conducted beats (normal or prolonged)",
+        "QRS complex: Narrow suggests a nodal block (Type I-like); wide suggests an infranodal block (Type II-like)",
+        "R-R interval: Regular",
+        "ST segment: Normal",
+        "Other relevant characteristics: The hidden P waves can make it look like sinus bradycardia. Look for a notched or distorted T wave."
+      ],
+      "key_learning_points": [
+        "Two P waves for every QRS (2:1); the second P is blocked.",
+        "You cannot tell Type I from Type II with 2:1 alone: the QRS width is the clue.",
+        "Wide QRS or symptoms: treat like Mobitz II (pacing)."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "two_to_one",
+            "explanation": "Two P waves are present for each QRS."
+          },
+          {
+            "feature": "conduction_ratio",
+            "operator": "equals",
+            "value": "two_to_one",
+            "explanation": "AV conduction ratio is 2:1."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "The ventricular rhythm is typically regular.",
+            "weight": 2
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Regular sinus P waves are present.",
+            "weight": 1
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "in",
+            "value": [
+              "normal_constant",
+              "prolonged_constant"
+            ],
+            "explanation": "Conducted beats have a constant measurable PR.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "in",
+            "value": [
+              "narrow",
+              "wide"
+            ],
+            "explanation": "QRS width may suggest level of block but does not by itself define Mobitz type.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "1:1 conduction conflicts with 2:1 AV block."
+          },
+          {
+            "feature": "conduction_ratio",
+            "operator": "equals",
+            "value": "complete_dissociation",
+            "explanation": "Complete AV dissociation indicates third-degree block."
+          }
+        ],
+        "ambiguity_note": "Do not force 2:1 AV block into Mobitz I or II based on the surface rhythm fields alone."
+      }
+    },
+    {
+      "id": "3-degree-av-block",
+      "pathology": "3° AV Block",
+      "short_name": "3° AVB",
+      "module": "MODULE 3 - AV CONDUCTION BLOCKS",
+      "character": "character1",
+      "definition": "Complete failure of conduction between the atria and the ventricles. The atria and ventricles beat independently (AV dissociation), and the ventricles are driven by a slow junctional or ventricular escape rhythm.",
+      "ecg_characteristics": [
+        "Heart rate: Atrial 60-100 bpm; ventricular 20-60 bpm (junctional escape 40-60, ventricular escape 20-40)",
+        "Rhythm: P-P regular and R-R regular, but independent of each other",
+        "P wave: Normal, with NO relationship to the QRS; they march through the QRS and T waves",
+        "PR interval: Variable (no true PR)",
+        "QRS complex: Narrow (junctional escape) or wide (ventricular escape)",
+        "R-R interval: Regular and slow",
+        "ST segment: Depends on the QRS",
+        "Other relevant characteristics: Cannon A waves in the neck. The escape rate and QRS width predict stability: slower and wider is more dangerous."
+      ],
+      "key_learning_points": [
+        "P waves and QRS complexes are completely independent (AV dissociation).",
+        "Regular but slow ventricular rate (20-60 bpm) from an escape pacemaker.",
+        "Unstable: transcutaneous pacing now; atropine is a bridge, not the cure."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "av_dissociation",
+            "explanation": "Atrial and ventricular activity are independent."
+          },
+          {
+            "feature": "conduction_ratio",
+            "operator": "equals",
+            "value": "complete_dissociation",
+            "explanation": "There is complete AV dissociation."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "The escape rhythm is usually regular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "in",
+            "value": [
+              "variable",
+              "not_measurable"
+            ],
+            "explanation": "There is no fixed PR relationship.",
+            "weight": 3
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "in",
+            "value": [
+              "narrow",
+              "wide"
+            ],
+            "explanation": "Escape QRS may be narrow or wide depending on origin.",
+            "weight": 1
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 20,
+              "max": 60
+            },
+            "explanation": "Typical ventricular escape rate in the dataset is 20-60 bpm.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "one_to_one",
+            "explanation": "1:1 AV conduction conflicts with complete heart block."
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "prolonged_constant",
+            "explanation": "A constant PR with 1:1 conduction fits first-degree, not third-degree block."
+          }
+        ]
+      }
+    },
+    {
+      "id": "nsr-with-pjc",
+      "pathology": "NSR with PJC",
+      "short_name": "NSR+PJC",
+      "module": "MODULE 4 - JUNCTIONAL RHYTHMS",
+      "character": "character2",
+      "definition": "A normal sinus rhythm interrupted by an early beat that starts in the AV junction (premature junctional complex). The impulse reaches the ventricles normally, so the QRS is narrow, but the P wave is absent, inverted or abnormally timed.",
+      "ecg_characteristics": [
+        "Heart rate: Depends on the underlying sinus rhythm",
+        "Rhythm: Regular except for the premature beat(s)",
+        "P wave: Absent, inverted before the QRS, or inverted right after the QRS in the premature beat",
+        "PR interval: Shorter than 0.12 s when a P wave precedes the QRS",
+        "QRS complex: Narrow",
+        "R-R interval: The premature beat is early; a pause usually follows",
+        "ST segment: Normal",
+        "Other relevant characteristics: Often linked to digoxin toxicity. The early beat looks like a PAC, but without a normal P."
+      ],
+      "key_learning_points": [
+        "An early narrow-QRS beat with an inverted, absent or very short-PR P wave.",
+        "Think digoxin toxicity, ischemia or stimulants.",
+        "Usually benign: treat the cause, not the beat."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pjc",
+            "explanation": "A premature junctional complex is present."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "premature_junctional",
+            "explanation": "The premature beat originates from the junction."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "retrograde_or_inverted",
+              "absent"
+            ],
+            "explanation": "The premature beat may have an inverted/retrograde or absent P wave.",
+            "weight": 4
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "short_if_visible",
+            "explanation": "PR is short when a retrograde P precedes QRS.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "PJC is usually narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Underlying sinus rhythm is interrupted by an early beat.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pac",
+            "explanation": "Abnormal premature P before QRS favors PAC."
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pvc",
+            "explanation": "Wide premature ventricular morphology favors PVC."
+          }
+        ]
+      }
+    },
+    {
+      "id": "junctional-rhythm",
+      "pathology": "Junctional Rhythm",
+      "short_name": "JR",
+      "module": "MODULE 4 - JUNCTIONAL RHYTHMS",
+      "character": "character3",
+      "definition": "An escape rhythm that starts in the AV junction (AV node and bundle of His). It takes over when the SA node fails or is too slow, firing at its natural rate of 40-60 bpm.",
+      "ecg_characteristics": [
+        "Heart rate: 40-60 bpm (below 40 is called junctional bradycardia)",
+        "Rhythm: Regular",
+        "P wave: Inverted in II, III, aVF; or absent; or after the QRS",
+        "PR interval: Shorter than 0.12 s if a P wave precedes the QRS",
+        "QRS complex: Narrow",
+        "R-R interval: Regular",
+        "ST segment: Normal",
+        "Other relevant characteristics: Loss of atrial contribution can lower cardiac output. Often follows a sinus pause or slowing."
+      ],
+      "key_learning_points": [
+        "Regular, slow (40-60 bpm), narrow QRS with inverted, absent or hidden P waves.",
+        "It is an escape rhythm: the backup when the SA node fails.",
+        "Suspect digoxin toxicity; treat only if symptomatic (atropine, pacing)."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 40,
+              "max": 60
+            },
+            "explanation": "Rate fits junctional escape rhythm."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "retrograde_or_inverted",
+              "absent"
+            ],
+            "explanation": "P waves are absent, inverted, or retrograde."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Junctional rhythm is regular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "in",
+            "value": [
+              "short_if_visible",
+              "not_measurable"
+            ],
+            "explanation": "PR is short if retrograde P precedes QRS, or not measurable if P is hidden/after QRS.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is usually narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "This is a sustained rhythm, not an isolated premature beat.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P waves conflict with a junctional rhythm."
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 60,
+            "explanation": "Rates above 60 move toward accelerated junctional rhythm in this curriculum."
+          }
+        ]
+      }
+    },
+    {
+      "id": "accelerated-junctional-rhythm",
+      "pathology": "Accelerated Junctional Rhythm",
+      "short_name": "AJR",
+      "module": "MODULE 4 - JUNCTIONAL RHYTHMS",
+      "character": "character1",
+      "definition": "A junctional rhythm faster than the junction's natural 40-60 bpm, but not above 100 bpm, caused by increased automaticity of the AV junction. It is called \"accelerated\" because the normal rate of the junction is slower than that of the SA node.",
+      "ecg_characteristics": [
+        "Heart rate: 61-100 bpm",
+        "Rhythm: Regular",
+        "P wave: Inverted, absent, or after the QRS",
+        "PR interval: Shorter than 0.12 s if a P wave precedes the QRS",
+        "QRS complex: Narrow",
+        "R-R interval: Regular",
+        "ST segment: Normal",
+        "Other relevant characteristics: The rate looks like normal sinus rhythm, but the P waves are abnormal or missing. The sinus node may continue at a slower rate (AV dissociation)."
+      ],
+      "key_learning_points": [
+        "Junctional rhythm, but at 60-100 bpm: faster than the junction's natural 40-60.",
+        "Absent or inverted P waves with a narrow QRS.",
+        "Classic culprit: digoxin toxicity (also inferior MI and cardiac surgery)."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 61,
+              "max": 100
+            },
+            "explanation": "Rate fits accelerated junctional rhythm."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "retrograde_or_inverted",
+              "absent"
+            ],
+            "explanation": "P waves are absent, inverted, or retrograde."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Rhythm is regular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "in",
+            "value": [
+              "short_if_visible",
+              "not_measurable"
+            ],
+            "explanation": "PR is short if visible or not measurable.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is typically narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "Sustained junctional rhythm rather than an isolated PJC.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "lte",
+            "value": 60,
+            "explanation": "A slower rate fits junctional rhythm."
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 100,
+            "explanation": "A faster rate fits junctional tachycardia in this curriculum."
+          }
+        ]
+      }
+    },
+    {
+      "id": "junctional-tachycardia",
+      "pathology": "Junctional Tachycardia",
+      "short_name": "JT",
+      "module": "MODULE 4 - JUNCTIONAL RHYTHMS",
+      "character": "character2",
+      "definition": "A junctional rhythm above 100 bpm caused by increased automaticity in the AV junction (not a reentry circuit). It has a gradual warm-up, unlike the abrupt start of AVNRT.",
+      "ecg_characteristics": [
+        "Heart rate: 101-180 bpm (often 100-130)",
+        "Rhythm: Regular",
+        "P wave: Inverted, absent, or after the QRS",
+        "PR interval: Shorter than 0.12 s if a P wave precedes the QRS",
+        "QRS complex: Narrow",
+        "R-R interval: Regular",
+        "ST segment: Normal or mild depression",
+        "Other relevant characteristics: Gradual onset and offset. It often does not stop with adenosine, vagal maneuvers or cardioversion."
+      ],
+      "key_learning_points": [
+        "Regular, narrow tachycardia above 100 bpm with absent or inverted P waves.",
+        "It is automatic (not reentrant), so it often ignores adenosine and cardioversion.",
+        "Hunt for digoxin toxicity, ischemia and post-cardiac-surgery causes."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 101,
+              "max": 180
+            },
+            "explanation": "Rate fits junctional tachycardia in the dataset."
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "retrograde_or_inverted",
+              "absent"
+            ],
+            "explanation": "P waves are absent, inverted, or retrograde."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Rhythm is regular.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "in",
+            "value": [
+              "short_if_visible",
+              "not_measurable"
+            ],
+            "explanation": "PR is short if visible or not measurable.",
+            "weight": 2
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is typically narrow.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "Sustained rhythm rather than isolated PJC.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "normal_sinus",
+            "explanation": "Normal sinus P waves favor sinus tachycardia."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "Wide-complex tachycardia requires a different differential."
+          }
+        ]
+      }
+    },
+    {
+      "id": "nsr-with-pvc",
+      "pathology": "NSR with PVC",
+      "short_name": "NSR+PVC",
+      "module": "MODULE 5 - VENTRICULAR RHYTHMS",
+      "character": "character3",
+      "definition": "A normal sinus rhythm interrupted by an early beat that starts in the ventricles (premature ventricular complex). The impulse spreads slowly through the ventricles, so the QRS is wide and bizarre, and it is followed by a pause.",
+      "ecg_characteristics": [
+        "Heart rate: Depends on the underlying rhythm (usually 60-100 bpm)",
+        "Rhythm: Regular except for the premature beat(s)",
+        "P wave: None before the PVC (the sinus P may be hidden in the wide QRS or T)",
+        "PR interval: Not applicable to the PVC",
+        "QRS complex: Wide (more than 0.12 s), bizarre, with a T wave pointing the opposite way",
+        "R-R interval: The premature interval is short, followed by a full compensatory pause (the two intervals together equal 2x the normal R-R)",
+        "ST segment: Discordant (opposite to the QRS)",
+        "Other relevant characteristics: Patterns: bigeminy, trigeminy, couplets. Three or more in a row is ventricular tachycardia. Multifocal PVCs and R-on-T are higher risk."
+      ],
+      "key_learning_points": [
+        "Early, wide, bizarre QRS with no preceding P wave and a full compensatory pause.",
+        "Isolated PVCs are often benign; three or more in a row is ventricular tachycardia.",
+        "Correct potassium, magnesium, hypoxia and ischemia; do not suppress PVCs in MI."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pvc",
+            "explanation": "A premature ventricular complex is present."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "premature_ventricular",
+            "explanation": "The premature beat is ventricular in origin."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "PVC has a wide/bizarre premature QRS.",
+            "weight": 4
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "normal_sinus"
+            ],
+            "explanation": "No P precedes the PVC; sinus P waves may continue elsewhere.",
+            "weight": 2
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regularly_irregular",
+            "explanation": "Underlying rhythm is interrupted by the premature beat.",
+            "weight": 2
+          },
+          {
+            "feature": "pause_behavior",
+            "operator": "equals",
+            "value": "multiple_of_baseline",
+            "explanation": "A compensatory pause supports PVC.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pac",
+            "explanation": "A premature abnormal P with narrow QRS favors PAC."
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "pjc",
+            "explanation": "A narrow premature beat with retrograde P favors PJC."
+          }
+        ]
+      }
+    },
+    {
+      "id": "idioventricular-rhythm",
+      "pathology": "Idioventricular Rhythm",
+      "short_name": "IVR",
+      "module": "MODULE 5 - VENTRICULAR RHYTHMS",
+      "character": "character1",
+      "definition": "A ventricular escape rhythm at 20-40 bpm that takes over when the SA node, atria and AV junction all fail to pace the heart. The QRS is wide because the impulse starts in the ventricles. It is the heart's last backup.",
+      "ecg_characteristics": [
+        "Heart rate: 20-40 bpm",
+        "Rhythm: Regular",
+        "P wave: Absent (or dissociated from the QRS)",
+        "PR interval: Not applicable",
+        "QRS complex: Wide (more than 0.12 s) and bizarre",
+        "R-R interval: Regular and long",
+        "ST segment: Discordant (opposite to the QRS)",
+        "Other relevant characteristics: A \"dying heart\" rhythm that can degenerate into asystole or pulseless electrical activity (PEA)."
+      ],
+      "key_learning_points": [
+        "Slow (20-40 bpm), regular, wide QRS, no P waves.",
+        "It is the heart's last backup: never suppress it with lidocaine or amiodarone.",
+        "Always check for a pulse: without one it is PEA, so start CPR."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 20,
+              "max": 40
+            },
+            "explanation": "Rate fits the curriculum range for idioventricular rhythm."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "Ventricular escape rhythm produces wide QRS complexes."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Rhythm is usually regular.",
+            "weight": 2
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "dissociated"
+            ],
+            "explanation": "P waves are absent or dissociated.",
+            "weight": 3
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_applicable",
+            "explanation": "No fixed PR relationship.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "Sustained ventricular rhythm, not an isolated PVC.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 40,
+            "explanation": "A faster ventricular rhythm moves toward AIVR in this curriculum."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "A narrow QRS conflicts with idioventricular origin."
+          }
+        ]
+      }
+    },
+    {
+      "id": "accelerated-idioventricular-rhythm",
+      "pathology": "Accelerated Idioventricular Rhythm",
+      "short_name": "AIVR",
+      "module": "MODULE 5 - VENTRICULAR RHYTHMS",
+      "character": "character2",
+      "definition": "A regular ventricular rhythm at 41-100 bpm caused by increased automaticity of a ventricular focus. It is like a slow ventricular tachycardia, usually brief and well tolerated, and it is a classic sign of reperfusion after a heart attack.",
+      "ecg_characteristics": [
+        "Heart rate: 41-100 bpm (often 60-100)",
+        "Rhythm: Regular",
+        "P wave: Absent, or dissociated (sinus P waves may march through)",
+        "PR interval: Not applicable",
+        "QRS complex: Wide (more than 0.12 s)",
+        "R-R interval: Regular",
+        "ST segment: Discordant",
+        "Other relevant characteristics: Often starts and stops gradually, with fusion beats, when the sinus rate slows or speeds up. Seen after reperfusion (thrombolysis or angioplasty), digoxin toxicity, cocaine and myocarditis."
+      ],
+      "key_learning_points": [
+        "Wide, regular ventricular rhythm at 41-100 bpm (a slow VT).",
+        "A classic reperfusion rhythm after a heart attack, usually harmless.",
+        "Do not treat by reflex: observe, and act only if perfusion suffers."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "between",
+            "value": {
+              "min": 41,
+              "max": 100
+            },
+            "explanation": "Rate fits the dataset range for AIVR."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "AIVR is a wide-complex ventricular rhythm."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Rhythm is typically regular.",
+            "weight": 2
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "dissociated"
+            ],
+            "explanation": "P waves may be absent or dissociated.",
+            "weight": 3
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_applicable",
+            "explanation": "No fixed PR interval.",
+            "weight": 2
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "Sustained rhythm, not an isolated PVC.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "lte",
+            "value": 40,
+            "explanation": "A slower ventricular rhythm fits IVR."
+          },
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 100,
+            "explanation": "A faster wide-complex ventricular rhythm raises concern for VT."
+          }
+        ]
+      }
+    },
+    {
+      "id": "ventricular-tachycardia",
+      "pathology": "Ventricular Tachycardia",
+      "short_name": "VT",
+      "module": "MODULE 5 - VENTRICULAR RHYTHMS",
+      "character": "character3",
+      "definition": "Three or more consecutive ventricular beats at more than 100 bpm. It is called sustained if it lasts more than 30 seconds or causes collapse. In monomorphic VT every QRS has the same shape. It can occur with a pulse or without a pulse (cardiac arrest).",
+      "ecg_characteristics": [
+        "Heart rate: More than 100 bpm (typically 150-250)",
+        "Rhythm: Regular (monomorphic)",
+        "P wave: Absent, or AV dissociation with P waves hidden in the QRS",
+        "PR interval: Not applicable",
+        "QRS complex: Wide (more than 0.12 s), uniform, bizarre",
+        "R-R interval: Regular",
+        "ST segment: Discordant",
+        "Other relevant characteristics: Fusion and capture beats and AV dissociation support VT. A wide-complex tachycardia is VT until proven otherwise."
+      ],
+      "key_learning_points": [
+        "Regular, wide, fast (above 100 bpm) with no P waves: treat any wide tachycardia as VT.",
+        "Check the pulse first: no pulse means CPR and defibrillation; pulse and unstable means synchronized cardioversion.",
+        "Stable with pulse: amiodarone 150 mg IV over 10 min; avoid verapamil."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "gt",
+            "value": 100,
+            "explanation": "Tachycardic ventricular rate."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "VT is a wide-complex rhythm in this teaching set."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Monomorphic VT is generally regular.",
+            "weight": 2
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "dissociated"
+            ],
+            "explanation": "P waves may be absent or dissociated.",
+            "weight": 2
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_applicable",
+            "explanation": "No fixed PR relationship.",
+            "weight": 1
+          },
+          {
+            "feature": "premature_beat_pattern",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "This is a sustained tachycardia rather than an isolated PVC.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "A narrow-complex tachycardia does not fit the teaching pattern for VT."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "ventricular_spike_before_qrs",
+            "explanation": "Pacing spikes preceding QRS favor a paced ventricular rhythm."
+          }
+        ],
+        "ambiguity_note": "In real clinical practice, wide-complex tachycardia has a broader differential. ECGenius is an educational pattern matcher and should not claim clinical certainty."
+      }
+    },
+    {
+      "id": "ventricular-fibrillation",
+      "pathology": "Ventricular Fibrillation",
+      "short_name": "VF",
+      "module": "MODULE 5 - VENTRICULAR RHYTHMS",
+      "character": "character1",
+      "definition": "Chaotic, disorganized electrical activity in the ventricles. The heart quivers instead of pumping, so there is no pulse and no blood flow. It is a cardiac arrest rhythm and is shockable.",
+      "ecg_characteristics": [
+        "Heart rate: Not measurable (chaotic)",
+        "Rhythm: Chaotic and irregular",
+        "P wave: None",
+        "PR interval: None",
+        "QRS complex: None identifiable (coarse or fine undulations)",
+        "R-R interval: None",
+        "ST segment: None identifiable",
+        "Other relevant characteristics: Coarse VF (larger waves) responds better to shock than fine VF. Fine VF can look like asystole: check leads and gain."
+      ],
+      "key_learning_points": [
+        "Chaotic wavy baseline: no P, no QRS, no pulse. It is cardiac arrest.",
+        "Shock as soon as possible: CPR plus defibrillation 200 J, then CPR for 2 minutes.",
+        "Epinephrine 1 mg every 3-5 min; amiodarone 300 mg after the third shock; look for the Hs and Ts."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "heart_rate_bpm",
+            "operator": "unmeasurable",
+            "explanation": "No organized measurable ventricular rate."
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "chaotic",
+            "explanation": "Electrical activity is chaotic."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "absent",
+            "explanation": "No identifiable organized QRS complexes."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "absent",
+            "explanation": "No organized P waves.",
+            "weight": 3
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "none_identifiable",
+            "explanation": "No organized P:QRS relationship.",
+            "weight": 3
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_applicable",
+            "explanation": "PR interval is not applicable.",
+            "weight": 2
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing pattern explains the tracing.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "A regular organized rhythm conflicts with VF."
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "in",
+            "value": [
+              "narrow",
+              "wide"
+            ],
+            "explanation": "Identifiable repeating QRS complexes argue against VF."
+          }
+        ]
+      }
+    },
+    {
+      "id": "paced-atrial",
+      "pathology": "Paced Atrial",
+      "short_name": "A-Paced",
+      "module": "MODULE 6 - PACED RHYTHMS",
+      "character": "character2",
+      "definition": "A rhythm driven by an artificial pacemaker that stimulates the atrium. A tiny vertical pacing spike appears before each P wave, and the impulse then conducts normally through the AV node, giving a narrow QRS.",
+      "ecg_characteristics": [
+        "Heart rate: Set by the pacemaker (lower rate usually 60-80 bpm)",
+        "Rhythm: Regular",
+        "P wave: Pacing spike followed by a paced P wave (its shape differs from a sinus P)",
+        "PR interval: Normal (0.12-0.20 s) because conduction is through the native AV node",
+        "QRS complex: Narrow",
+        "R-R interval: Regular",
+        "ST segment: Normal",
+        "Other relevant characteristics: Capture means every spike is followed by a P wave. Sensing means the pacemaker holds back when the heart beats on its own. Seen in AAI mode or as the atrial part of a dual-chamber (DDD) pacemaker."
+      ],
+      "key_learning_points": [
+        "A tiny vertical spike comes right before every P wave; the QRS stays narrow.",
+        "Check capture (spike then P), sensing (no spike on native beats) and rate.",
+        "No treatment if it works: troubleshoot only failures."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "atrial_spike_before_p",
+            "explanation": "A pacing spike precedes atrial depolarization."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "paced_atrial_capture",
+            "explanation": "Each atrial pacing spike captures a P wave in the teaching pattern."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "p_wave_morphology",
+            "operator": "equals",
+            "value": "paced_p",
+            "explanation": "P wave morphology is paced rather than sinus.",
+            "weight": 4
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Paced rhythm is typically regular.",
+            "weight": 1
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "normal_constant",
+            "explanation": "Native AV conduction produces a measurable PR.",
+            "weight": 1
+          },
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "narrow",
+            "explanation": "QRS is usually narrow with native ventricular conduction.",
+            "weight": 2
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "ventricular_spike_before_qrs",
+            "explanation": "Ventricular spikes favor ventricular pacing."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing spike conflicts with a paced rhythm."
+          }
+        ]
+      }
+    },
+    {
+      "id": "paced-ventricular",
+      "pathology": "Paced Ventricular",
+      "short_name": "V-Paced",
+      "module": "MODULE 6 - PACED RHYTHMS",
+      "character": "character3",
+      "definition": "A rhythm driven by an artificial pacemaker that stimulates the ventricle. A pacing spike is followed by a wide QRS (usually with a left bundle branch block pattern), because the impulse starts in the ventricle and not in the normal conduction system.",
+      "ecg_characteristics": [
+        "Heart rate: Set by the pacemaker (lower rate usually 60-80 bpm)",
+        "Rhythm: Regular",
+        "P wave: Absent, or dissociated and unrelated to the QRS",
+        "PR interval: Not applicable",
+        "QRS complex: Wide (more than 0.12 s), preceded by a spike",
+        "R-R interval: Regular",
+        "ST segment: Discordant (secondary changes)",
+        "Other relevant characteristics: Capture means every spike is followed by a QRS. Failure to capture is a spike with no QRS. Failure to sense is a spike that appears after a native beat. Oversensing shows as pauses without spikes."
+      ],
+      "key_learning_points": [
+        "A spike followed by a wide QRS; each spike should capture a QRS.",
+        "Spike with no QRS is failure to capture; missing spikes when needed suggests failure to sense or oversensing.",
+        "Always check for a pulse: electrical capture does not guarantee mechanical capture."
+      ],
+      "classifier": {
+        "required": [
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "ventricular_spike_before_qrs",
+            "explanation": "A pacing spike precedes ventricular depolarization."
+          },
+          {
+            "feature": "pqrs_relationship",
+            "operator": "equals",
+            "value": "paced_ventricular_capture",
+            "explanation": "Each ventricular pacing spike captures a QRS in the teaching pattern."
+          }
+        ],
+        "supporting": [
+          {
+            "feature": "qrs_width",
+            "operator": "equals",
+            "value": "wide",
+            "explanation": "Ventricular pacing produces a wide QRS.",
+            "weight": 4
+          },
+          {
+            "feature": "ventricular_regularity",
+            "operator": "equals",
+            "value": "regular",
+            "explanation": "Paced ventricular rhythm is usually regular.",
+            "weight": 1
+          },
+          {
+            "feature": "p_wave_morphology",
+            "operator": "in",
+            "value": [
+              "absent",
+              "dissociated"
+            ],
+            "explanation": "P waves may be absent or unrelated to paced QRS.",
+            "weight": 1
+          },
+          {
+            "feature": "pr_behavior",
+            "operator": "equals",
+            "value": "not_applicable",
+            "explanation": "PR is not applicable to ventricular pacing.",
+            "weight": 1
+          }
+        ],
+        "conflicts": [
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "atrial_spike_before_p",
+            "explanation": "Atrial-only spikes favor atrial pacing."
+          },
+          {
+            "feature": "pacing_activity",
+            "operator": "equals",
+            "value": "none",
+            "explanation": "No pacing spike conflicts with a paced rhythm."
+          }
+        ]
+      }
+    }
+  ]
+}

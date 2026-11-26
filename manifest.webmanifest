@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "CardioLab · Monitor ECG",
+  "short_name": "CardioLab",
+  "description": "Monitor educativo ECG con modo de demostración y conexión BLE.",
+  "lang": "es",
+  "start_url": "./#monitor",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#edf6ef",
+  "theme_color": "#12372d",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
