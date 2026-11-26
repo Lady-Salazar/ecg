@@ -152,10 +152,10 @@
   }
 
   // ------------------------------------------------------------ medidas para las reglas
-  function picosR(v){
+  function picosR(v,refractarioS=0.18){
     let mx=-Infinity,mn=Infinity;
     for(const a of v){if(a>mx)mx=a;if(a<mn)mn=a}
-    const signo=mx>=-mn?1:-1, tope=Math.max(mx,-mn), umbral=0.5*tope, refractario=Math.round(0.18*FS_OUT), picos=[];
+    const signo=mx>=-mn?1:-1, tope=Math.max(mx,-mn), umbral=0.5*tope, refractario=Math.round(refractarioS*FS_OUT), picos=[];
     for(let i=1;i<v.length-1;i++){
       const a=signo*v[i];
       if(a>=umbral&&a>signo*v[i-1]&&a>=signo*v[i+1]){
@@ -247,7 +247,8 @@
     const clase=m.clases[k], confianza=probs[k];
     const r={clase,id:IDS[clase]||null,confianza,probs:Object.fromEntries(m.clases.map((c,i)=>[c,probs[i]])),nombre:NOMBRES[clase]||clase,variante:null,lpm:null,concluyente:confianza>=config.confianzaMinima,notas:[]};
     const fijar=(nombre,id)=>{r.nombre=nombre;r.id=id};
-    const {picos,amplitud}=picosR(v), rr=intervalosRR(picos);
+    // Con marcapasos la espiga es tan alta como el QRS: un refractario largo evita contarla como latido.
+    const {picos,amplitud}=picosR(v,clase.startsWith('marc_')?0.35:0.18), rr=intervalosRR(picos);
     if(clase!=='fv')r.lpm=lpmPorPicos(picos);
 
     if(clase==='sinus'&&r.lpm){
