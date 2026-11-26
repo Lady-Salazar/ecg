@@ -251,6 +251,7 @@
     if(clase==='sinus'&&r.lpm){
       // mismos rangos que las fichas de la app: < 60 bradicardia, 101-150 taquicardia
       if(r.lpm<60)fijar('Bradicardia sinusal','sinus-bradycardia');
+      else if(r.lpm>150)fijar('Taquicardia supraventricular (TSV)','svt'); // estrecha y regular > 150: TSV segun las fichas (incluye la taquicardia auricular)
       else if(r.lpm>100)fijar('Taquicardia sinusal','sinus-tachycardia');
       else if(rr.length>=5&&Math.max(...rr)-Math.min(...rr)>=config.arritmiaSinusalS)fijar('Arritmia sinusal','sinus-arrhythmia');
     }else if(clase==='pausa_sinusal'){
