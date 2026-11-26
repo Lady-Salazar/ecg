@@ -153,7 +153,7 @@
   function picosR(v){
     let mx=-Infinity,mn=Infinity;
     for(const a of v){if(a>mx)mx=a;if(a<mn)mn=a}
-    const signo=mx>=-mn?1:-1, tope=Math.max(mx,-mn), umbral=0.5*tope, refractario=Math.round(0.25*FS_OUT), picos=[];
+    const signo=mx>=-mn?1:-1, tope=Math.max(mx,-mn), umbral=0.5*tope, refractario=Math.round(0.18*FS_OUT), picos=[];
     for(let i=1;i<v.length-1;i++){
       const a=signo*v[i];
       if(a>=umbral&&a>signo*v[i-1]&&a>=signo*v[i+1]){
