@@ -33,6 +33,11 @@ body.dark .topbar,body.dark .app-sidebar{background:var(--sidebar);border-color:
 @media(max-width:720px){.predict-layout{grid-template-columns:1fr}.predict-guide{position:static}.ecg-topics{grid-template-columns:1fr 1fr}.ecg-fundamentals .section-title img{width:80px;height:100px}.lesson-stage{padding:15px}.lesson-stage-title h3,.lesson-stage>h3{font-size:21px}.lesson-answer-grid{grid-template-columns:1fr}.lesson-meet,.lesson-recap{grid-template-columns:1fr;gap:10px}.lesson-meet img,.lesson-recap img{width:90px;height:115px;justify-self:start}.lesson-clinical-grid{grid-template-columns:1fr}.lesson-matching{grid-template-columns:1fr}.challenge-floor{min-height:620px}.challenge-patient-grid{grid-template-columns:repeat(2,1fr);margin-top:35px}.challenge-answers{grid-template-columns:1fr}.lesson-footer{gap:7px}.lesson-footer .button{padding:8px 11px}}
 
 
-/* El numero de latidos heredaba texto blanco sobre la tarjeta clara y no se veia. */
-.heart-value strong{color:var(--ink,#193742)}
-body.dark .heart-value strong{color:inherit}
+/* Tarjeta de frecuencia cardiaca: los textos se pensaron para un fondo oscuro y en el
+   tema claro quedaban blancos o muy palidos. Colores propios para cada tema. */
+.heart-card .heart-value strong{color:#12323b}
+.heart-card .heart-value span,.heart-card .metric-caption{color:#5d7378}
+.heart-card .metric-label{color:#2f7f76}
+body.dark .heart-card .heart-value strong{color:#f5f7fa}
+body.dark .heart-card .heart-value span,body.dark .heart-card .metric-caption{color:#a8c4c1}
+body.dark .heart-card .metric-label{color:#7fd8cb}
