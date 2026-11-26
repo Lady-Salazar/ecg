@@ -101,9 +101,11 @@
   }
   /** Ventana cruda de 10 s -> {v: Float32Array normalizado, y: filtrada a 120 Hz, s: escala}. */
   function preprocesar(muestras,fs){
-    const y=remuestrear(filtrar(muestras,fs),fs), s=escala(y), v=new Float32Array(N_OUT);
-    if(s>=1e-9)for(let i=0;i<N_OUT;i++)v[i]=Math.max(-CLIP,Math.min(CLIP,y[i]/s));
-    return {v,y,s};
+    // v: entrada de la red (recortada a +-4).  u: la misma senal sin recortar, para medir
+    // latidos: en bradicardia el recorte igualaba la onda T al QRS y se contaba doble.
+    const y=remuestrear(filtrar(muestras,fs),fs), s=escala(y), v=new Float32Array(N_OUT), u=new Float32Array(N_OUT);
+    if(s>=1e-9)for(let i=0;i<N_OUT;i++){u[i]=y[i]/s;v[i]=Math.max(-CLIP,Math.min(CLIP,u[i]))}
+    return {v,u,y,s};
   }
 
   // ------------------------------------------------------------ red neuronal
@@ -226,9 +228,9 @@
     const n=Math.round(VENTANA_S*fs);
     if(!fs||muestras.length<n)return {ok:false,motivo:'faltan datos'};
     const ventana=muestras.length>n?muestras.slice(muestras.length-n):muestras;
-    const {v,s}=preprocesar(ventana,fs);
+    const {v,u,s}=preprocesar(ventana,fs);
     if(s<1e-9)return {ok:false,motivo:'señal plana'};
-    return {ok:true,probs:inferir(v),v,s,unidadesPorMv:opciones.unidadesPorMv||null};
+    return {ok:true,probs:inferir(v),v,u,s,unidadesPorMv:opciones.unidadesPorMv||null};
   }
 
   /** Convierte probabilidades + senal en el texto final con variante y medidas. */
@@ -238,8 +240,8 @@
     return rr;
   }
   /** Convierte probabilidades + senal en el ritmo final (uno de los 27) con variante y medidas. */
-  function interpretar(probs,v,s,unidadesPorMv){
-    const m=cargar();
+  function interpretar(probs,vRed,s,unidadesPorMv,u){
+    const m=cargar(), v=u||vRed;
     let k=0;
     for(let i=1;i<probs.length;i++)if(probs[i]>probs[k])k=i;
     const clase=m.clases[k], confianza=probs[k];
@@ -309,7 +311,7 @@
     historial.push(c.probs);
     if(historial.length>config.suavizado)historial.shift();
     const prom=c.probs.map((_,i)=>historial.reduce((a,p)=>a+p[i],0)/historial.length);
-    ultimo={ok:true,...interpretar(prom,c.v,c.s,unidades)};
+    ultimo={ok:true,...interpretar(prom,c.v,c.s,unidades,c.u)};
     if(alCambiar)alCambiar(ultimo);
   }
   /** Segundos que faltan para la primera lectura (0 si ya hay ventana completa). */
